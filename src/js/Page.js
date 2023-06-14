@@ -78,14 +78,6 @@ module.exports = class {
 
     await allUncheckBtn.click();
 
-    const memberMagazineCode = 114;
-    const memberMagazineElm = await this.page.$(
-      `input[value="${memberMagazineCode}"]`
-    );
-    await memberMagazineElm.evaluate((node) => {
-      node.parentElement.click();
-    });
-
     await Promise.all([this.page.waitForNavigation(), registerBtn.click()]);
   }
 
