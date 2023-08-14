@@ -7,11 +7,8 @@ exports.handler = async () => {
     const page = new Page(process.env.id, process.env.pass);
     await page.init();
 
-    await page.login();
-    await page.goToUnsubscribePage();
-
-    await page.unsbscriveFromRakuten();
-    await page.unsbscriveFromShop();
+    await page.unsubscribeFromRakuten();
+    await page.unsubscribeFromShop();
 
     await page.close();
 
@@ -20,9 +17,9 @@ exports.handler = async () => {
       body: "Successfully unsubscribe email from Rakuten"
     };
   } catch (error) {
+    console.error(error);
     return {
-      statusCode: 400,
-      body: JSON.stringify(error.body)
+      statusCode: 400
     };
   }
 };

@@ -1,9 +1,9 @@
 {
   "name": "unsbscribe-rakuten-email",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "index.js",
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=14.0.0"
   },
   "keywords": [],
   "repository": {
@@ -14,12 +14,12 @@
   "license": "MIT",
   "description": "Unsubscribe emails from rakuten ichiba.",
   "devDependencies": {
-    "@cybozu/eslint-config": "20.0.0",
-    "eslint": "8.42.0",
-    "prettier": "2.8.8"
+    "@cybozu/eslint-config": "22.0.0",
+    "eslint": "8.47.0",
+    "prettier": "3.0.1"
   },
   "dependencies": {
     "playwright-aws-lambda": "^0.10.0",
-    "playwright-core": "^1.35.0"
+    "playwright-core": "^1.37.0"
   }
 }

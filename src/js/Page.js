@@ -1,7 +1,4 @@
-// const puppeteer = require("puppeteer");
-const chromium = require("chrome-aws-lambda");
-const puppeteer = chromium.puppeteer;
-
+const playwright = require("playwright-aws-lambda");
 module.exports = class {
   constructor(id, pass) {
     this.url = "https://www.rakuten.co.jp/";
@@ -10,99 +7,54 @@ module.exports = class {
   }
 
   async init() {
-    this.browser = await puppeteer.launch({
-      args: chromium.args,
-      defaultViewport: chromium.defaultViewport,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless
-      // headless: false
-    });
-    this.page = await this.browser.newPage();
-    await this.page.goto(this.url);
+    this.browser = await playwright.launchChromium();
+    this.context = await this.browser.newContext({});
+    this.page = await this.context.newPage();
   }
 
-  async login() {
-    const buttons = await this.page.$$("button");
-    const targetBtn = buttons[2];
-
-    const isLoginBtn = await targetBtn.evaluate((button) => {
-      if (button.ariaLabel === "ログイン") {
-        return true;
-      }
-      return false;
-    });
-
-    if (!isLoginBtn) {
-      return;
-    }
-
-    await Promise.all([
-      this.page.waitForSelector("#loginInner_u"),
-      this.page.waitForSelector("#loginInner_p"),
-      this.page.waitForSelector(".loginButton"),
-      targetBtn.click()
-    ]);
-
-    await this.page.$eval(
-      "#loginInner_u",
-      (elm, id) => {
-        elm.value = id;
-      },
-      this.id
-    );
-    await this.page.$eval(
-      "#loginInner_p",
-      (elm, pass) => {
-        elm.value = pass;
-      },
-      this.pass
-    );
-
-    const loginBtn = await this.page.$(".loginButton");
-    await Promise.all([this.page.waitForNavigation(), loginBtn.click()]);
-  }
-
-  async goToUnsubscribePage() {
+  async unsubscribeFromRakuten() {
     await this.page.goto(
       "https://emagazine.rakuten.co.jp/ns?act=chg_news&f=member"
     );
-  }
 
-  async unsbscriveFromRakuten() {
-    const allUncheckBtn = await this.page.$("#allUncheck");
-    const registerBtn = await this.page.$("#btnRegister");
+    try {
+      // should not handle the authentication in this function, but cannot do it due to Rakuten's design
+      await this.page.locator('input[id="user_id"]').fill(this.id);
+      await this.page.getByRole("button", { name: "次へ" }).click();
+      await this.page.locator('input[id="password_current"]').fill(this.pass);
+      await this.page
+        .getByRole("button", { name: "ログイン", exact: true })
+        .click();
+      // Authentication ends here
 
-    if (!allUncheckBtn) {
-      return;
+      await this.page.locator('a[id="allUncheck"]').click();
+      await this.page.locator('input[id="btnRegister"]').click();
+      console.log("Unsubscribed from Rakuten");
+    } catch (error) {
+      console.warn(error.message);
     }
-
-    await allUncheckBtn.click();
-
-    await Promise.all([this.page.waitForNavigation(), registerBtn.click()]);
   }
 
-  async unsbscriveFromShop() {
+  async unsubscribeFromShop() {
     await this.page.goto(
       "https://emagazine.rakuten.co.jp/ns?act=chg_rmail&f=member&mflg=0"
     );
-    const allUncheckBtn = await this.page.$("#allUncheck");
-    const buttons = await this.page.$$("input");
-    const targetBtn = buttons[2];
 
-    if (!allUncheckBtn) {
-      return;
+    try {
+      await this.page
+        .locator(
+          'a[href="https://emagazine.rakuten.co.jp/ns?act=chg_rmail_delete_conf&f=member&mflg=0"]'
+        )
+        .click();
+      await this.page.locator('input[type="submit"]').click();
+      console.log("Unsubscribed from Shop");
+    } catch (error) {
+      console.warn(error.message);
     }
-
-    await allUncheckBtn.click();
-    await Promise.all([this.page.waitForNavigation(), targetBtn.click()]);
-
-    const buttons2 = await this.page.$$("input");
-    const targetBtn2 = buttons2[3];
-
-    await targetBtn2.click();
   }
 
   async close() {
     this.browser.close();
+    console.log("Closed");
   }
 };
